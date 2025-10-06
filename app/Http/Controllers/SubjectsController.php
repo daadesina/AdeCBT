@@ -21,6 +21,10 @@ class SubjectsController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->user()->role !== 'admin'){
+            return response()->json(["message"=>"Access denied. Admins only."], 403);
+        }
+
         $validated = $request->validate([
             "name" => "required|string|max:255|unique:subjects,name",
         ]);
@@ -43,6 +47,10 @@ class SubjectsController extends Controller
      */
     public function update(Request $request, Subjects $subject)
     {
+        if ($request->user()->role !== 'admin'){
+            return response()->json(["message"=>"Access denied. Admins only."], 403);
+        }
+
         $validated = $request->validate([
             "name" => "sometimes|string|max:255|unique:subjects,name," . $subject->id,
         ]);
@@ -55,8 +63,12 @@ class SubjectsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Subjects $subject)
+    public function destroy(Request $request, Subjects $subject)
     {
+        if ($request->user()->role !== 'admin'){
+            return response()->json(["message"=>"Access denied. Admins only."], 403);
+        }
+
         $subject->delete();
         return response()->json(null, 204);
     }

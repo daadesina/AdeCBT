@@ -12,7 +12,7 @@ class TopicsController extends Controller
      */
     public function index()
     {
-        $topics = Topics::with('subject')->get();
+        $topics = Topics::all();
         return response()->json($topics, 200);
     }
 
@@ -21,13 +21,15 @@ class TopicsController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->user()->role !== 'admin'){
+            return response()->json(["message"=>"Access denied. Admins only."], 403);
+        }
+        
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:topics',
-            'subject_id' => 'required|integer|exists:subjects,id',
+            'name' => 'required|string|max:255',
         ]);
 
         $topics = Topics::create($validated);
-        $topics->load('subject'); // 👈 load the subject relationship
 
         return response()->json($topics, 201);
     }
@@ -46,14 +48,16 @@ class TopicsController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if ($request->user()->role !== 'admin'){
+            return response()->json(["message"=>"Access denied. Admins only."], 403);
+        }
+
         $topics = Topics::with('subject')->findOrFail($id);
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255|unique:topics,name,' . $topics->id,
-            'subject_id' => 'sometimes|integer|exists:subjects,id',
+            'name' => 'sometimes|string|max:255',
         ]);
 
         $topics->update($validated);
-        $topics->load('subject'); // 👈 reload with subject
 
         return response()->json($topics, 200);
     }
@@ -61,8 +65,12 @@ class TopicsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        if ($request->user()->role !== 'admin'){
+            return response()->json(["message"=>"Access denied. Admins only."], 403);
+        }
+
         $topics = Topics::findOrFail($id);
         $topics->delete();
         return response()->json(null, 204);

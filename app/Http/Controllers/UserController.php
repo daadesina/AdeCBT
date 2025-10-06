@@ -21,6 +21,13 @@ class UserController extends Controller
     }
 
     /**
+     * Get current authorized user
+     */
+    public function me(Request $request){
+        return response()->json($request->user(), 200);
+    }
+
+    /**
      * Register or create a new user.
      */
     public function store(Request $request)
